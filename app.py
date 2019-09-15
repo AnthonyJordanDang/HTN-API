@@ -8,6 +8,7 @@ from ingest import TDApi
 import json
 from flask import Blueprint
 from flask import jsonify
+import random
 
 app = Flask(__name__)
 api = Api(app)
@@ -16,7 +17,9 @@ tdapi = TDApi()
 
 uid = None
 budget = 0.0
-alerts = {}
+alerts = {
+
+}
 
 default_page = Blueprint('default_page', __name__)
 
@@ -30,9 +33,14 @@ class UserData(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('user_id', required=True, help='invalid id')
         parser.add_argument('budget', required=True, help='invalid id')
-
         data = parser.parse_args()
-
+        uid = data.user_id
+        budget = data.budget
+        type(uid)
+        alerts['Info'] = tdapi.get_info(uid)
+        alerts['Info']['budget'] = budget
+        update()
+        print("yes")
         return {
             'user_id' : data.user_id
         }
@@ -40,7 +48,6 @@ class UserData(Resource):
 
 class AlertSystem(Resource):
     def get(self):
-        global alerts
         return json.dumps(alerts)
 
 
@@ -55,6 +62,10 @@ def update():
 
     elif predicted_spent > budget:
         alerts['PredictedOverBudget'] = {'Amount': predicted_spent - budget}
+
+    fraud, not_fraud = tdapi.get_outliers(transactions)
+    alerts['PotentialFraud'] = {'Amount': fraud[random.randint(0, len(fraud)-1)]}
+    alerts['Overspending'] = {'Amount': not_fraud[random.randint(0, len(not_fraud)-1)]}
 
 
 CORS(app)
