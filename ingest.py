@@ -30,7 +30,7 @@ class TDApi:
         
         return past_transaction_list
 
-    def split_monthy(self, transactions):
+    def split_monthly(self, transactions):
         months = {}
         for transaction in transactions:
             month = str(datetime.datetime.strptime(transaction['originationDateTime'].split('T')[0], '%Y-%m-%d').month)
@@ -102,15 +102,15 @@ class TDApi:
         spending_outliers = []
         for i in range(len(x)):
             if y[i] > floor:
-                spending_outliers.append((x[i], y[i]))
+                spending_outliers.append([x[i], y[i]])
 
         for outlier in spending_outliers:
             date = datetime.datetime.strptime(outlier[0].split(':')[0], '%Y-%m-%dT%H')
             date_decimal = (date.day * 24 + date.hour) / 720
             outlier[0] = date_decimal
 
-        stdev = np.std(outlier[0] for outlier in spending_outliers)
-        mean = np.mean(outlier[0] for outlier in spending_outliers)
+        stdev = np.std([outlier[0] for outlier in spending_outliers])
+        mean = np.mean([outlier[0] for outlier in spending_outliers])
         fraud = []
         not_fraud = []
         for outlier in spending_outliers:

@@ -3,7 +3,6 @@ from flask_restful import Api
 from flask import jsonify
 from flask_restful import Resource, reqparse
 from flask_cors import CORS 
-import threading
 from ingest import TDApi
 import json
 from flask import Blueprint
@@ -34,8 +33,10 @@ class UserData(Resource):
         parser.add_argument('user_id', required=True, help='invalid id')
         parser.add_argument('budget', required=True, help='invalid id')
         data = parser.parse_args()
+        global uid
+        global budget
         uid = data.user_id
-        budget = data.budget
+        budget = float(data.budget)
         type(uid)
         alerts['Info'] = tdapi.get_info(uid)
         alerts['Info']['budget'] = budget
@@ -48,24 +49,27 @@ class UserData(Resource):
 
 class AlertSystem(Resource):
     def get(self):
+        update()
         return json.dumps(alerts)
 
 
 def update():
     # start this by calling it once we get the UID
-    threading.Timer(15, update).start()
-    transactions = tdapi.split_monthy(tdapi.get_past_transactions(uid))
-    current_spent = tdapi.total_monthly_spending(transactions['09'])
-    predicted_spent = tdapi.predicted_monthly_spending(transactions['09'])
+    transactions = tdapi.split_monthly(tdapi.get_past_transactions(uid))
+    current_spent = tdapi.total_monthly_spending(transactions['9'])
+    predicted_spent = tdapi.predicted_monthly_spending(transactions['9'])
     if current_spent > budget:
         alerts['OverBudget'] = {'Amount': current_spent - budget}
 
     elif predicted_spent > budget:
         alerts['PredictedOverBudget'] = {'Amount': predicted_spent - budget}
 
-    fraud, not_fraud = tdapi.get_outliers(transactions)
-    alerts['PotentialFraud'] = {'Amount': fraud[random.randint(0, len(fraud)-1)]}
-    alerts['Overspending'] = {'Amount': not_fraud[random.randint(0, len(not_fraud)-1)]}
+    fraud, not_fraud = tdapi.get_outliers(transactions['9'])
+    if len(fraud) > 0:
+        alerts['PotentialFraud'] = {'Amount': fraud[0]}
+    
+    if len(not_fraud) > 0:
+        alerts['Overspending'] = {'Amount': not_fraud[0]}
 
 
 CORS(app)
@@ -76,7 +80,7 @@ app.register_blueprint(default_page)
 
 #User resources
 api.add_resource(UserData, '/users')
-api.add_resource(AlertSystem, '/alerts/')
+api.add_resource(AlertSystem, '/alerts')
 
 if __name__ == '__main__':
     app.run(debug=True)
