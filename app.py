@@ -26,11 +26,15 @@ def index():
 
 
 class UserData(Resource):
-    def get(self, user_id, user_budget):
-        uid = user_id
-        budget = user_budget
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('user_id', required=True, help='invalid id')
+        parser.add_argument('budget', required=True, help='invalid id')
+
+        data = parser.parse_args()
+
         return {
-            'Status' : 'Welcome to the club'
+            'user_id' : data.user_id
         }
 
 
@@ -60,7 +64,7 @@ CORS(app)
 app.register_blueprint(default_page)
 
 #User resources
-api.add_resource(UserData, '/user/<int:user_id>')
+api.add_resource(UserData, '/users')
 api.add_resource(AlertSystem, '/alerts/')
 
 if __name__ == '__main__':
