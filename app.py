@@ -14,12 +14,22 @@ api = Api(app)
 tdapi = TDApi()
 
 uid = None
-transactions = None
+budget = 0.0
+alerts = []
 
-def update_transactions():
+def update():
     # start this by calling it once we get the UID
-    threading.Timer(15, update_transactions).start()
+    threading.Timer(15, update).start()
     transactions = tdapi.split_monthy(tdapi.get_past_transactions(uid))
+    current_spent = tdapi.total_monthly_spending(transactions['09'])
+    predicted_spent = tdapi.predicted_monthly_spending(transactions['09'])
+    if current_spent > budget:
+        alerts.append({'OverBudget': {'Amount': current_spent - budget}})
+    elif predicted_spent > budget:
+        alerts.append({'PredictedOverBudget': {'Amount': predicted_spent - budget}})
+
+    
+
 
 CORS(app)
 

@@ -1,12 +1,17 @@
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparsje
+import json
 
 class UserData(Resource):
-    def get(self, user_id):
+    def get(self, user_id, budget):
         global uid
-        global tdapi
+        global budget
         uid = user_id
-        tdapi.
         return {
             'Status' : 'Welcome to the club'
         }
 
+
+class AlertSystem(Resource):
+    def get(self):
+        global alerts
+        return json.dumps(alerts)

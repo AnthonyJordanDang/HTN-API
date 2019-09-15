@@ -82,3 +82,9 @@ class TDApi:
         m, b = np.linalg.lstsq(A, y, rcond=None)[0]
         return (m + b)
 
+    def total_monthly_spending(self, monthly_transaction_list):
+        spending = 0.0
+        for transaction in monthly_transaction_list:
+            spending += abs(transaction['currencyAmount'])
+
+        return spending
