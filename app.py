@@ -19,7 +19,7 @@ transactions = None
 def update_transactions():
     # start this by calling it once we get the UID
     threading.Timer(15, update_transactions).start()
-    transactions = tdapi.get_past_transactions(uid)
+    transactions = tdapi.split_monthy(tdapi.get_past_transactions(uid))
 
 CORS(app)
 
